@@ -69,9 +69,14 @@ Securely generating ECDSA keys is beyond the scope of the developer preview.
 == Getting Started
 
 With the developer preview you'll be able to setup a local Bitcoin network and interact with
-that network using canisters. There are two ways to set up: <<Getting-Started-Manual, manual>> and <<Getting-Started-with-Docker, Docker>>.
+that network using canisters.
 
-[[Getting-Started-Manual]]
+There are two ways to set up:
+
+. <<manual-setup>>
+. <<docker-setup>>
+
+== Manual Setup
 === Prerequisites
 
 * https://rustup.rs/[Rust]
@@ -188,26 +193,9 @@ cargo run --features="tokio candid ic-agent garcon tonic tonic-build" --bin adap
 
 The shim will start syncing blocks from your local bitcoin setup into the bitcoin canister.
 Once that's complete, you'll be able to query the bitcoin canister about the bitcoin state.
+See <<using-the-bitcoin-canister>> for more details and checkout the <<examples/README.adoc#example-project,example project>>.
 
-=== Using the Bitcoin Canister
-
-There's an example project in the `./example` directory that showcases how to interact with the Bitcoin canister.
-Additionally, you can call the Bitcoin canister directly using `dfx`. Examples:
-
-**Fetching the balance/UTXOs of an address**
-```
-dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"})"
-dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"})"
-```
-
-**Fetching the balance/UTXOs of an address with a minimum of 6 confirmations**
-```
-dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
-dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
-```
-
-[[Getting-Started-with-Docker]]
-== Getting Started with Docker
+== Docker Setup
 
 === Prerequisites
 
@@ -291,3 +279,20 @@ Continue with the Getting Started directions from <<Deploying-the-Bitcoin-Canist
 
 * To view the logs of the `bitcoind` container: `docker-compose logs -f bitcoind`
 * To view the logs of the `adapter` container: `docker-compose logs -f adapter`
+
+== Using the Bitcoin Canister
+
+There's an example project in the `./example` directory that showcases how to interact with the Bitcoin canister.
+Additionally, you can call the Bitcoin canister directly using `dfx`. Examples:
+
+**Fetching the balance/UTXOs of an address**
+```
+dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"})"
+dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"})"
+```
+
+**Fetching the balance/UTXOs of an address with a minimum of 6 confirmations**
+```
+dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
+dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
+```

@@ -84,10 +84,17 @@ dfx canister --no-wallet call btc-example-motoko get_utxos
 
 ```bash
 # Using the Rust example.
-dfx canister --no-wallet call btc-example-rust send "(1_0000_0000, \"$BTC_ADDRESS\")"
+dfx canister --no-wallet call btc-example-rust send "(1_0000_0000, \"DESTINATION_ADDRESS\")"
 
 # Using the Motoko example.
-dfx canister --no-wallet call btc-example-motoko send "(1_0000_0000, \"$BTC_ADDRESS\")"
+dfx canister --no-wallet call btc-example-motoko send "(1_0000_0000, \"DESTINATION_ADDRESS\")"
+```
+
+For the transaction to be processed, you'll need to mine a new block using the command below.
+The new block will contain the newly sent transaction.
+
+```bash
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 $BTC_ADDRESS
 ```
 
 == Sending bitcoin to the example canister
