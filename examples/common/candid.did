@@ -24,6 +24,14 @@ service: {
   // Given the private key, compute the P2PKH address.
   get_p2pkh_address: (private_key_wif: text, Network) -> (text) query;
 
+  // Builds an unsigned transaction and returns the indices of used UTXOs.
+  build_transaction: (utxos: vec Utxo,
+    source_address: text,
+    destination_address: text,
+    amount: Satoshi,
+    fees: Satoshi
+  ) -> (blob, vec nat64) query;
+
   // Creates a signed bitcoin transaction that sends `amount` from the `source_address`
   // to the `destination_address`.
   build_and_sign_transaction: (
