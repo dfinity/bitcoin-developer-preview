@@ -1,7 +1,7 @@
 use bitcoin::{util::psbt::serialize::Serialize, Address, Network, PrivateKey};
 use example_common::{build_transaction, get_p2pkh_address, sign_transaction};
 use ic_btc_types::{
-    GetBalanceError, GetBalanceRequest, GetUtxosError, GetUtxosRequest, GetUtxosResponse,
+    GetBalanceError, GetBalanceRequest, GetUtxosError, GetUtxosRequest, GetUtxosResponse, OutPoint,
     SendTransactionRequest, Utxo,
 };
 use ic_cdk::{
@@ -14,7 +14,7 @@ use ic_cdk::{
     print, trap,
 };
 use ic_cdk_macros::{init, query, update};
-use std::{cell::RefCell, str::FromStr};
+use std::{cell::RefCell, collections::HashSet, str::FromStr};
 
 // A private key in WIF (wallet import format). This is only for demonstrational purposes.
 // When the Bitcoin integration is released on mainnet, canisters will have the ability
@@ -28,6 +28,9 @@ thread_local! {
     // The ID of the bitcoin canister that is installed locally.
     // The value here is initialize with a dummy value, which will be overwritten in `init`.
     static BTC_CANISTER_ID: RefCell<Principal> = RefCell::new(Principal::management_canister());
+
+    // A cache of spent outpoints. Needed to avoid double spending.
+    static SPENT_TXOS: RefCell<HashSet<OutPoint>> = RefCell::new(HashSet::new());
 }
 
 #[derive(CandidType, Deserialize)]
@@ -136,12 +139,27 @@ pub async fn send(amount: u64, destination: String) {
     // Fetch our UTXOs.
     let utxos = get_utxos().await;
 
-    // NOTE: In a real application, we should filter out UTXOs that we spent but haven't been
-    // confirmed yet.
+    // Remove any spent UTXOs that were already used for past transactions.
+    let utxos = utxos
+        .into_iter()
+        .filter(|utxo| SPENT_TXOS.with(|spent_txos| !spent_txos.borrow().contains(&utxo.outpoint)))
+        .collect();
+
     let spending_transaction = build_transaction(utxos, btc_address(), destination, amount, fees)
         .unwrap_or_else(|err| {
             trap(&format!("Error building transaction: {}", err));
         });
+
+    // Cache the spent outputs to not use them for future transactions.
+    for tx_in in spending_transaction.input.iter() {
+        SPENT_TXOS.with(|spent_txos| {
+            print(&format!("Caching {:?}", tx_in.previous_output.txid.to_vec()));
+            spent_txos.borrow_mut().insert(OutPoint {
+                txid: tx_in.previous_output.txid.to_vec(),
+                vout: tx_in.previous_output.vout,
+            })
+        });
+    }
 
     print(&format!(
         "Transaction to sign: {}",
