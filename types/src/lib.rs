@@ -5,7 +5,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 pub type Satoshi = u64;
 
 /// A reference to a transaction output.
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
+#[derive(CandidType, Debug, Deserialize, PartialEq, Eq, Hash)]
 pub struct OutPoint {
     pub txid: Vec<u8>,
     pub vout: u32,
