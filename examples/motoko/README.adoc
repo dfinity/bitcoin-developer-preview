@@ -1,0 +1,3 @@
+= Motoko Example
+
+The README in `./examples` contains the documentation.

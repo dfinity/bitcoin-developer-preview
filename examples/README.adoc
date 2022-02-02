@@ -1,0 +1,110 @@
+= Example Project
+
+This directory contains an example project, written in both Motoko and Rust,
+to showcase how to:
+
+. Get the balance of a Bitcoin address.
+. Get transaction outputs and use them to build a transaction.
+. Sign a transaction and send it to the Bitcoin network.
+
+NOTE: The example project contains a hard-coded ECDSA key for demonstration purposes. The
+mainnet release will offer the functionality for canisters to securely generate ECDSA keys.
+
+== Deployment
+
+After going through the <<../README.adoc#getting-started,initial setup>>, you have
+the choice of either deploying the Rust or the Motoko example.
+
+=== Rust
+
+To deploy the Rust example:
+
+```
+dfx deploy btc-example-rust --no-wallet --argument "(record { bitcoin_canister_id = principal \"$(dfx canister --no-wallet id btc)\" })" --mode=reinstall
+```
+
+=== Motoko
+
+To deploy the Motoko example:
+
+```bash
+dfx deploy btc-example-motoko --no-wallet --argument "(record { bitcoin_canister_id = principal \"$(dfx canister --no-wallet id btc)\" })"
+```
+
+To reinstall the Motoko example:
+
+```bash
+dfx deploy btc-example-motoko --no-wallet --argument "(record { bitcoin_canister_id = principal \"$(dfx canister --no-wallet id btc)\" })" --mode=reinstall
+```
+
+[NOTE]
+====
+Many crypto primitives are still missing in Motoko, and that
+makes some fundamental operations, such as computing a Bitcoin address and
+signing a transaction, impossible.
+
+These primitives are actively being built. In the meantime, as a work-around
+until the crypto primitives become available, we wrap all the functionality
+requiring cryptography into a "common" canister, which is deployed along with
+and used by the Motoko example.
+====
+
+== Endpoints
+
+The example provides the following endpoints:
+
+* Retrieve the canister's BTC address.
+
+```bash
+dfx canister --no-wallet call btc-example-rust btc_address
+dfx canister --no-wallet call btc-example-motoko btc_address
+```
+
+* Retrieve the canister's balance.
+
+```bash
+# Using the Rust example.
+dfx canister --no-wallet call btc-example-rust balance
+
+# Using the Motoko example.
+dfx canister --no-wallet call btc-example-motoko balance
+```
+
+* Retrieve the canister's UTXOs.
+
+```bash
+# Using the Rust example.
+dfx canister --no-wallet call btc-example-rust get_utxos
+
+# Using the Motoko example.
+dfx canister --no-wallet call btc-example-motoko get_utxos
+```
+
+* Send Bitcoin (in Satoshi) from the canister to a destination address.
+
+```bash
+# Using the Rust example.
+dfx canister --no-wallet call btc-example-rust send "(1_0000_0000, \"$BTC_ADDRESS\")"
+
+# Using the Motoko example.
+dfx canister --no-wallet call btc-example-motoko send "(1_0000_0000, \"$BTC_ADDRESS\")"
+```
+
+== Sending bitcoin to the example canister
+
+To top up the example canister with Bitcoin, run the following:
+
+```
+# The canister's BTC address.
+# This can be retrieved using the canister's "balance" endpoint.
+export CANISTER_BTC_ADDRESS=mmdoAzumgjbvAJjVGg7fkQmtvDNFd2wjjH
+
+# Send a transaction that transfers 10 BTC to the canister.
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data sendtoaddress $CANISTER_BTC_ADDRESS 10 "" "" true true null "unset" null 1.1
+
+# Mine a block that contains the transaction.
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 $BTC_ADDRESS
+```
+
+If successful, querying the `balance` endpoint of the canister should return
+the updated balance.

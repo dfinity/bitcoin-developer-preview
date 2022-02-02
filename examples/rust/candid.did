@@ -1,0 +1,25 @@
+type Satoshi = nat64;
+
+type InitPayload = record {
+  bitcoin_canister_id : principal;
+};
+
+type OutPoint = record {
+  txid : blob;
+  vout : nat32
+};
+
+type Utxo = record {
+  outpoint: OutPoint;
+  value: Satoshi;
+  height: nat32;
+  confirmations: nat32;
+};
+
+service: (InitPayload) -> {
+  btc_address: () -> (text) query;
+  balance: () -> (nat64);
+  get_utxos: () -> (vec Utxo);
+  send: (amount: nat64, destination: text) -> ();
+}
+

@@ -1,0 +1,38 @@
+type Satoshi = nat64;
+
+type Network = variant {
+  Bitcoin;
+  Regtest;
+  Testnet;
+  Signet
+};
+
+type OutPoint = record {
+  txid : blob;
+  vout : nat32
+};
+
+// An unspent transaction output.
+type Utxo = record {
+  outpoint: OutPoint;
+  value: Satoshi;
+  height: nat32;
+  confirmations: nat32;
+};
+
+service: {
+  // Given the private key, compute the P2PKH address.
+  get_p2pkh_address: (private_key_wif: text, Network) -> (text) query;
+
+  // Creates a signed bitcoin transaction that sends `amount` from the `source_address`
+  // to the `destination_address`.
+  build_and_sign_transaction: (
+    private_key_wif: text,
+    utxos: vec Utxo,
+    source_address: text,
+    destination_address: text,
+    amount: Satoshi,
+    fees: Satoshi
+  ) -> (blob) query;
+}
+

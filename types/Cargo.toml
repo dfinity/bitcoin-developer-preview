@@ -1,0 +1,8 @@
+[package]
+name = "ic-btc-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ic-cdk = "0.3.1"
+serde = "1.0.132"

@@ -1,0 +1,43 @@
+{
+  "dfx": "0.8.4",
+  "canisters": {
+    "btc": {
+      "type": "custom",
+      "candid": "canister/candid.did",
+      "wasm": "target/wasm32-unknown-unknown/release/canister.wasm",
+      "build": "scripts/build-canister.sh"
+    },
+    "btc-example-rust": {
+      "type": "custom",
+      "candid": "examples/rust/candid.did",
+      "wasm": "target/wasm32-unknown-unknown/release/example.wasm",
+      "build": "scripts/build-example.sh"
+    },
+    "btc-example-common": {
+      "type": "custom",
+      "candid": "examples/common/candid.did",
+      "wasm": "target/wasm32-unknown-unknown/release/example-common.wasm",
+      "build": "scripts/build-example-common.sh"
+    },
+    "btc-example-motoko": {
+      "type": "motoko",
+      "candid": "examples/motoko/candid.did",
+      "main": "examples/motoko/src/Main.mo",
+      "dependencies": [
+        "btc-example-common"
+      ]
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}

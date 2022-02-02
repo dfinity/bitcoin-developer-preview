@@ -1,0 +1,293 @@
+= Bitcoin Integration Developer Preview
+
+== Overview
+
+The https://dfinity.org/howitworks/direct-integration-with-bitcoin[integration]
+between the Internet Computer and Bitcoin will enable developers to build canisters that:
+
+1. *Securely own Bitcoin.*
++
+Canisters will be able to have the Internet Computer securely create ECDSA keys
+for them via a threshold ECDSA protocol so that they can own Bitcoin.
+
+2. *Interact with the Bitcoin network.*
++
+Canisters will be able to send transactions, get transaction outputs, as well as
+get the balance of any Bitcoin address.
+The aforementioned threshold ECDSA protocol is used to securely sign transactions.
+
+== Differences to Main Release
+
+The developer preview enables developers to work with the Bitcoin integration features
+before the proper launch.
+
+In the developer preview, all components run *locally*, i.e., no Bitcoin functionality
+is deployed on mainnet.
+The Bitcoin canister is configured to interact with a local Bitcoin network in `regtest` mode.
+
+By contrast, there will be two Bitcoin _virtual canisters_ on mainnet, similar to the
+https://smartcontracts.org/docs/interface-spec/index.html#ic-management-canister[management canister].
+Application canisters can interact with these virtual canisters
+using a canister address; however, all Bitcoin functionality is effectively part of the replica and does not
+run inside canisters.
+
+NOTE: We refer to these virtual canisters simply as "Bitcoin canisters" for brevity.
+
+The two Bitcoin (virtual) canisters differ only in that they connect to different Bitcoin networks:
+
+- The Bitcoin canister that interacts with the Bitcoin *mainnet* has the canister address `TBD`.
+- The Bitcoin canister that interacts with the Bitcoin *testnet* has the canister address  `TBD`.
+
+The exposed <<canister/README.adoc#API,API>> is intended to be the API of the mainnet release, but
+may potentially be modified based on community feedback.
+
+== Components
+
+The developer preview consists of the following components:
+
+1. *The Bitcoin Canister*
++
+The Bitcoin canister provides the API that developers can use to interact with the Bitcoin networks.
+
++
+See the `./canister` directory for more details.
+
+2. *An Example Project*
++
+The project showcases how developers can achieve the following:
+
+. Get the balance of a Bitcoin address.
+. Get transaction outputs and use them to build a transaction.
+. Sign a transaction and send it to the Bitcoin network.
+
++
+See the `./example` directory for more details.
+
+NOTE: The developer preview focuses strictly on the interaction with the Bitcoin network.
+Securely generating ECDSA keys is beyond the scope of the developer preview.
+
+== Getting Started
+
+With the developer preview you'll be able to setup a local Bitcoin network and interact with
+that network using canisters. There are two ways to set up: <<Getting-Started-Manual, manual>> and <<Getting-Started-with-Docker, Docker>>.
+
+[[Getting-Started-Manual]]
+=== Prerequisites
+
+* https://rustup.rs/[Rust]
+* https://smartcontracts.org/docs/download.html[dfx] >= 0.8.4
+* https://bitcoin.org/en/download[Bitcoin Core]. Mac users are recommended to download the `.tar.gz` version.
+* Mac users need to install https://brew.sh/[homebrew] and then use it to install additional packages by running `brew install llvm binaryen cmake`
+
+NOTE: These instructions assume you're running Linux or MacOS. We do not officially support Windows.
+
+The first step would be to setup a local Bitcoin network.
+
+=== Setting up a local Bitcoin network
+
+1. Unpack the `.tar.gz` file.
+2. Create a directory named `data` inside the unpacked folder.
+3. Create a file called `bitcoin.conf` at the root of the unpacked folder and add the following contents:
++
+```
+# Enable regtest mode. This is required to setup a private bitcoin network.
+regtest=1
+
+# Dummy credentials that are required by `bitcoin-cli`.
+rpcuser=btc-dev-preview
+rpcpassword=Wjh4u6SAjT4UMJKxPmoZ0AN2r9qbE-ksXQ5I2_-Hm4w=
+rpcauth=btc-dev-preview:8555f1162d473af8e1f744aa056fd728$afaf9cb17b8cf0e8e65994d1195e4b3a4348963b08897b4084d210e5ee588bcb
+```
+4. Run `bitcoind` to start the bitcoin client using the following command:
++
+`./bin/bitcoind -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data`
+
+5. Create a wallet: `./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf createwallet mywallet`
++
+If everything is setup correctly, you should see the following output:
++
+```
+{
+  "name": "mywallet",
+  "warning": ""
+}
+```
+
+6. Generate a bitcoin address and save it in variable for later reuse:
++
+```
+export BTC_ADDRESS=$(./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getnewaddress)
+```
++
+This will generate a bitcoin address for your wallet to receive funds.
+
+7. Mine blocks to receive some Bitcoin as a reward.
++
+`./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 101 $BTC_ADDRESS`
++
+You should see an output that looks similar to, but not exactly like, the following:
++
+```
+[
+  "1625281b2595b77276903868a0fe2fc31cb0c624e9bdc269e74a3f319ceb48de",
+  "1cc5ba7e86fc313333c5448af6c7af44ff249eca3c8b681edc3c275efd3a2d38",
+  "1d3c85b674497ba08a48d1b955bee5b4dc4505ffe4e9f49b428153e02e3e0764",
+  ...
+  "0dfd066985dc001ccc1fe6d7bfa53b7ad4944285dc173615792653bbd52151f1",
+  "65975f1cd5809164f73b0702cf326204d8fee8b9669bc6bd510cb221cf09db5c",
+]
+```
+
+=== Running the IC-Bitcoin Adapter
+
+Now that bitcoin is setup locally, it is time to run the IC-Bitcoin adapter.
+
+The IC-Bitcoin adapter is a process that fetches headers and blocks from the Bitcoin network
+and passes them into the Internet Computer. The ic-bitcoin adapter will be integrated into the
+replica with the main release. For the developer preview, it needs to be launched separately.
+
+Run the following commands to download, build, and run the adapter.
+
+```bash
+# clone the ic repository and checkout a specific commit.
+git clone https://github.com/dfinity/ic.git
+cd ic
+git checkout 99116f8e872b8765aa609f91eb8c9394914c483d
+
+# Move into the rs directory and run the adapter.
+cd rs
+cargo run --bin ic-btc-adapter -- ./bitcoin/adapter/tests/sample/regtest.config.json
+```
+
+[[Deploying-the-Bitcoin-Canister]]
+=== Deploying the Bitcoin Canister
+
+With `bitcoind` and the adapter running, we can now run a local replica with the Bitcoin canister.
+
+1. Clone this repository.
+2. From the root directory of the repository, start the local replica.
++
+```bash
+dfx start --clean --background
+```
+3. Deploy the Bitcoin canister to the local replica in regtest mode.
++
+```
+dfx deploy btc --no-wallet
+```
+
+=== Running the Adapter Shim
+
+The shim is the final piece that needs to be started up.
+
+From this repository, run the following command:
+
+```bash
+cargo run --features="tokio candid ic-agent garcon tonic tonic-build" --bin adapter-shim $(dfx canister --no-wallet id btc)
+```
+
+The shim will start syncing blocks from your local bitcoin setup into the bitcoin canister.
+Once that's complete, you'll be able to query the bitcoin canister about the bitcoin state.
+
+=== Using the Bitcoin Canister
+
+There's an example project in the `./example` directory that showcases how to interact with the Bitcoin canister.
+Additionally, you can call the Bitcoin canister directly using `dfx`. Examples:
+
+**Fetching the balance/UTXOs of an address**
+```
+dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"})"
+dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"})"
+```
+
+**Fetching the balance/UTXOs of an address with a minimum of 6 confirmations**
+```
+dfx canister --no-wallet call btc get_balance "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
+dfx canister --no-wallet call btc get_utxos "(record { address = \"$BTC_ADDRESS\"; min_confirmations = opt 6})"
+```
+
+[[Getting-Started-with-Docker]]
+== Getting Started with Docker
+
+=== Prerequisites
+
+Instead of downloading bitcoin and cloning the `ic` repository, this repository offers an alternate
+solution using Docker and `docker-compose`.
+
+* https://rustup.rs/[Rust]
+* https://smartcontracts.org/docs/download.html[dfx] >= 0.8.4
+* Mac users need to install https://brew.sh/[homebrew] and then use it to install additional packages by running `brew install llvm binaryen cmake`
+* Docker
+** Mac: https://docs.docker.com/desktop/mac/install/[Docker for Mac]
+** Linux: https://docs.docker.com/engine/install/[Docker Engine] and https://docs.docker.com/compose/install/[Docker Compose].
+
+=== Setting up a local Bitcoin network and the IC-Bitcoin Adapter
+
+1. `docker-compose up -d` will start `bitcoind` in the background and begin building a fresh image for the IC-Bitcoin adapter.
+2. Verify that bitcoind is running: `docker-compose exec bitcoind bitcoin-cli -conf=/conf/bitcoin.conf getmininginfo`
++
+If everything is setup correctly, you should see the following output:
++
+```
+{
+  "blocks": 0,
+  "difficulty": 4.656542373906925e-10,
+  "networkhashps": 0,
+  "pooledtx": 0,
+  "chain": "regtest",
+  "warnings": ""
+}
+```
+
+3. Create a wallet: `docker-compose exec bitcoind bitcoin-cli -conf=/conf/bitcoin.conf createwallet mywallet`
++
+If everything is setup correctly, you should see the following output:
++
+```
+{
+  "name": "mywallet",
+  "warning": ""
+}
+```
+
+4. Generate a bitcoin address and save it in variable for later reuse:
++
+```
+export BTC_ADDRESS=$(docker-compose exec bitcoind bitcoin-cli -conf=/conf/bitcoin.conf getnewaddress | tr -d '\r')
+```
++
+This will generate a bitcoin address for your wallet to receive funds.
+
+5. Mine blocks to receive some Bitcoin as a reward.
++
+`docker-compose exec bitcoind bitcoin-cli -conf=/conf/bitcoin.conf generatetoaddress 101 $BTC_ADDRESS`
++
+You should see an output that looks similar to, but not exactly like, the following:
++
+```
+[
+  "1625281b2595b77276903868a0fe2fc31cb0c624e9bdc269e74a3f319ceb48de",
+  "1cc5ba7e86fc313333c5448af6c7af44ff249eca3c8b681edc3c275efd3a2d38",
+  "1d3c85b674497ba08a48d1b955bee5b4dc4505ffe4e9f49b428153e02e3e0764",
+  ...
+  "0dfd066985dc001ccc1fe6d7bfa53b7ad4944285dc173615792653bbd52151f1",
+  "65975f1cd5809164f73b0702cf326204d8fee8b9669bc6bd510cb221cf09db5c",
+]
+```
+6. Verify the adapter is running: `docker-compose logs adapter`
++
+You should an output that looks similar to the following:
+```
+adapter_1   | Feb 02 01:01:56.512 INFO Connected to 172.29.0.2:18444
+adapter_1   | Feb 02 01:01:57.022 INFO Received version from 172.29.0.2:18444
+adapter_1   | Feb 02 01:01:57.022 INFO Completed the version handshake with 172.29.0.2:18444
+adapter_1   | Feb 02 01:01:57.022 INFO Adding peer_info with addr : 172.29.0.2:18444 
+adapter_1   | Feb 02 01:01:57.223 INFO Received verack from 172.29.0.2:18444
+```
+
+Continue with the Getting Started directions from <<Deploying-the-Bitcoin-Canister, Deploying the Bitcoin Canister>> to complete setup.
+
+=== Viewing `bitcoind` and `IC-Bitcoin Adapter` output
+
+* To view the logs of the `bitcoind` container: `docker-compose logs -f bitcoind`
+* To view the logs of the `adapter` container: `docker-compose logs -f adapter`

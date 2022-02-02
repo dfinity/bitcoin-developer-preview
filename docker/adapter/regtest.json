@@ -1,0 +1,7 @@
+{
+    "version": 70001,
+    "network": "regtest",
+    "nodes": [
+        "bitcoind:18444"
+    ]
+}

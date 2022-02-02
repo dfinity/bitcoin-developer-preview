@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "canister",
+    "examples/common",
+    "examples/rust",
+    "types",
+]

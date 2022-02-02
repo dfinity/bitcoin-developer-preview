@@ -1,0 +1,25 @@
+version: '3.5'
+services:
+  bitcoind:
+    image: ruimarinho/bitcoin-core
+    ports:
+      - 18443:18443
+      - 18444:18444
+    command:
+      -conf=/conf/bitcoin.conf
+      -printtoconsole
+      -rest
+      -rpcbind=0.0.0.0
+      -rpcport=18443
+      -server
+    volumes:
+      - ./docker/bitcoind/conf:/conf
+  adapter:
+    image: ic-btc-adapter
+    build:
+      dockerfile: docker/adapter/Dockerfile
+      context: .
+    depends_on:
+      - bitcoind
+    ports:
+      - 34254:34254
