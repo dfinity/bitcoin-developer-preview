@@ -181,7 +181,7 @@ dfx start --clean --background
 dfx deploy btc --no-wallet
 ```
 
-==== Running the Adapter Shim
+=== Running the Adapter Shim
 
 The shim is the final piece that needs to be started up.
 
