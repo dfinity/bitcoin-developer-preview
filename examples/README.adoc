@@ -97,11 +97,6 @@ The new block will contain the newly sent transaction.
 ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 $BTC_ADDRESS
 ```
 
-NOTE: The example project, for simplicity, does not keep track of which UTXOs are part of
-a pending transaction. Therefore, sending multiple transactions within the same block will result
-in only one transaction going through. The solution here would be for the canister to keep track
-of its spent UTXOs in order to not use them in multiple transactions.
-
 == Sending bitcoin to the example canister
 
 To top up the example canister with Bitcoin, run the following:
