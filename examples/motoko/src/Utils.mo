@@ -27,7 +27,7 @@ module {
         x
     };
 
-    /// Checks if the outpoints are are equal.
+    /// Checks if the outpoints are equal.
     public func areOutPointsEqual(o1 : Types.OutPoint, o2 : Types.OutPoint) : Bool {
         if (o1.vout != o2.vout) {
             return false;
