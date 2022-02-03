@@ -1,6 +1,7 @@
 import Array "mo:base/Array";
 import Blob "mo:base/Blob";
 import Hash "mo:base/Hash";
+import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Nat8 "mo:base/Nat8";
 import Nat32 "mo:base/Nat32";
@@ -16,7 +17,7 @@ module {
 
     /// Returns a hash obtained by using the `djb2` algorithm from http://www.cse.yorku.ca/~oz/hash.html
     ///
-    /// This function is _good enough_ for use in a hash-table but it's not a cryptographic hash function!
+    /// Modified version of the 
     public func hashOutPoint(outpoint : Types.OutPoint) : Hash.Hash {
         let outpoint_data : [Nat32] = Array.append(Array.map(Blob.toArray(outpoint.txid), nat8ToNat32), [outpoint.vout]);
         var x : Nat32 = 5381;
@@ -26,6 +27,7 @@ module {
         x
     };
 
+    /// 
     public func areOutPointsEqual(o1 : Types.OutPoint, o2 : Types.OutPoint) : Bool {
         if (o1.vout != o2.vout) {
             return false;
@@ -36,16 +38,20 @@ module {
 
     public class OutPointSet () {
 
-        var trie_set : TrieSet.Set<Types.OutPoint> = TrieSet.empty();
+        var _set : TrieSet.Set<Types.OutPoint> = TrieSet.empty();
 
         public func add(outpoint : Types.OutPoint) {
-            let s2 = TrieSet.put(trie_set, outpoint, hashOutPoint(outpoint), areOutPointsEqual);
-            trie_set := s2;
+            let s2 = TrieSet.put(_set, outpoint, hashOutPoint(outpoint), areOutPointsEqual);
+            _set := s2;
         };
 
         public func contains(outpoint : Types.OutPoint) : Bool {
-            TrieSet.mem(trie_set, outpoint, hashOutPoint(outpoint), areOutPointsEqual)
-        }
+            TrieSet.mem(_set, outpoint, hashOutPoint(outpoint), areOutPointsEqual)
+        };
+
+        public func vals() : Iter.Iter<Types.OutPoint> {
+            Array.vals(TrieSet.toArray(_set))
+        };
 
     };
 

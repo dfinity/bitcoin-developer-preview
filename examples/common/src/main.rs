@@ -8,7 +8,10 @@
 //! to canisters. We wrap all the functionality requiring cryptography into a
 //! canister, and Motoko developers can deploy this canister and interact with it
 //! for address computation and transaction signing.
-use bitcoin::{util::psbt::serialize::Serialize, Address, Network, PrivateKey};
+use bitcoin::{
+    consensus::deserialize, util::psbt::serialize::Serialize, Address, Network, PrivateKey,
+    Transaction,
+};
 use ic_btc_types::{OutPoint, Utxo};
 use ic_cdk::export::candid::{candid_method, CandidType, Deserialize};
 use ic_cdk_macros::query;
@@ -63,7 +66,10 @@ fn build_and_sign_transaction(
     example_common::sign_transaction(tx, private_key, source_address).serialize()
 }
 
-fn build_transaction_(
+// Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
+#[query]
+#[candid_method(query)]
+fn build_transaction(
     utxos: Vec<Utxo>,
     source_address: String,
     destination_address: String,
@@ -103,33 +109,19 @@ fn build_transaction_(
     (tx.serialize(), used_utxo_indices)
 }
 
-// Returns the transaction as serialized bytes and the indices used for the transaction.
-#[query]
-#[candid_method(query)]
-fn build_transaction(
-    utxos: Vec<Utxo>,
-    source_address: String,
-    destination_address: String,
-    amount: u64,
-    fees: u64,
-) -> (Vec<u8>, Vec<usize>) {
-    build_transaction_(utxos, source_address, destination_address, amount, fees)
-}
-
-/*
 #[query]
 #[candid_method(query)]
 fn sign_transaction(
     private_key_wif: String,
-    serialized_tx: Vec<u8>,
+    serialized_transaction: Vec<u8>,
     source_address: String,
 ) -> Vec<u8> {
     let private_key = PrivateKey::from_wif(&private_key_wif).expect("Invalid private key WIF");
-    let tx: Transaction = deserialize(serialized_tx.as_slice()).expect("Invalid transaction");
+    let tx: Transaction =
+        deserialize(serialized_transaction.as_slice()).expect("Invalid transaction");
     let source_address = Address::from_str(&source_address).expect("Invalid source address");
     example_common::sign_transaction(tx, private_key, source_address).serialize()
 }
-*/
 
 fn main() {}
 
