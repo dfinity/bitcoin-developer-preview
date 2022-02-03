@@ -40,7 +40,10 @@ fn get_p2pkh_address(private_key_wif: String, network: NetworkCandid) -> String 
     example_common::get_p2pkh_address(&private_key, network).to_string()
 }
 
-fn build_transaction_(
+// Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
+#[query]
+#[candid_method(query)]
+fn build_transaction(
     utxos: Vec<Utxo>,
     source_address: String,
     destination_address: String,
@@ -79,20 +82,9 @@ fn build_transaction_(
     Ok((tx.serialize(), used_utxo_indices))
 }
 
-// Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
 #[query]
 #[candid_method(query)]
-fn build_transaction(
-    utxos: Vec<Utxo>,
-    source_address: String,
-    destination_address: String,
-    amount: u64,
-    fees: u64,
-) -> Result<(Vec<u8>, Vec<usize>), BuildTransactionError> {
-    build_transaction_(utxos, source_address, destination_address, amount, fees)
-}
-
-fn sign_transaction_(
+fn sign_transaction(
     private_key_wif: String,
     serialized_transaction: Vec<u8>,
     source_address: String,
@@ -104,16 +96,6 @@ fn sign_transaction_(
     let tx: Transaction = deserialize(serialized_transaction.as_slice())
         .map_err(|_| SignTransactionError::MalformedTransaction)?;
     Ok(example_common::sign_transaction(tx, private_key, source_address).serialize())
-}
-
-#[query]
-#[candid_method(query)]
-fn sign_transaction(
-    private_key_wif: String,
-    serialized_transaction: Vec<u8>,
-    source_address: String,
-) -> Result<Vec<u8>, SignTransactionError> {
-    sign_transaction_(private_key_wif, serialized_transaction, source_address)
 }
 
 fn main() {}
