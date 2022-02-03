@@ -11,7 +11,6 @@ module Types {
         #MalformedAddress;
         #MalformedTransaction;
         #InsufficientBalance;
-        #FailedToSign;
         #Unknown;
     };
 
