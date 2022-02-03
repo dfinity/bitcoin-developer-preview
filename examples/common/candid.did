@@ -39,15 +39,4 @@ service: {
     source_address: text
   ) -> (blob) query;
 
-  // Creates a signed bitcoin transaction that sends `amount` from the `source_address`
-  // to the `destination_address`.
-  build_and_sign_transaction: (
-    private_key_wif: text,
-    utxos: vec Utxo,
-    source_address: text,
-    destination_address: text,
-    amount: Satoshi,
-    fees: Satoshi
-  ) -> (blob) query;
 }
-

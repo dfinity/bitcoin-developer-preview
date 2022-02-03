@@ -39,33 +39,6 @@ fn get_p2pkh_address(private_key_wif: String, network: NetworkCandid) -> String 
     example_common::get_p2pkh_address(&private_key, network).to_string()
 }
 
-// Returns the serialized bytes of the signed transaction.
-#[query]
-#[candid_method(query)]
-fn build_and_sign_transaction(
-    private_key_wif: String,
-    utxos: Vec<Utxo>,
-    source_address: String,
-    destination_address: String,
-    amount: u64,
-    fees: u64,
-) -> Vec<u8> {
-    let private_key = PrivateKey::from_wif(&private_key_wif).expect("Invalid private key WIF");
-    let source_address = Address::from_str(&source_address).expect("Invalid source address");
-    let destination_address =
-        Address::from_str(&destination_address).expect("Invalid destination address");
-    let tx = example_common::build_transaction(
-        utxos,
-        source_address.clone(),
-        destination_address,
-        amount,
-        fees,
-    )
-    .expect("Building transaction failed");
-
-    example_common::sign_transaction(tx, private_key, source_address).serialize()
-}
-
 // Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
 #[query]
 #[candid_method(query)]
