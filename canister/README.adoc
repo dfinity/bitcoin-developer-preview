@@ -17,10 +17,6 @@ The Bitcoin canister exposes the following functions:
 - <<Get the Balance of a Bitcoin Address,`get_balance`>>: The function returns the balance of a given Bitcoin address.
 - <<Send a Bitcoin Transaction,`send_transaction`>>: The function sends the given transaction to the Bitcoin network.
 
-Note that only canisters can call these functions, incurring a cost in cycles.
-In other words, it is not possible for a developer to invoke the functions using a non-canister
-principal ID.
-
 The full interface description can be found link:candid.did[here],
 expressed in https://github.com/dfinity/candid/blob/master/spec/Candid.md[Candid syntax].
 
