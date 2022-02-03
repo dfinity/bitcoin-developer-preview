@@ -85,7 +85,11 @@ actor class Self(payload : Types.InitPayload) {
                 data 
             };
             case (#err(?error)) {
-                return #err(error);
+                switch (error) {
+                    case (#MalformedAddress) {
+                        return #err(#MalformedSourceAddress);
+                    }
+                }
             };
             case (#err(null)) {
                 return #err(#Unknown);
@@ -97,14 +101,31 @@ actor class Self(payload : Types.InitPayload) {
             return #err(#InsufficientBalance);
         };
 
-        let (tx, used_utxo_indices) = await Common.build_transaction(filtered_utxos, source, destination, amount, fees);
+        let build_transaction_result = await Common.build_transaction(filtered_utxos, source, destination, amount, fees);
+        let (tx, used_utxo_indices) = switch (build_transaction_result) {
+            case (#Ok(result)) {
+                result
+            };
+            case (#Err(error)) {
+                return #err(error);
+            };
+        };
 
         for (index in used_utxo_indices.vals()) {
             let i : Nat = Nat64.toNat(index);
             spent_outpoints.add(filtered_utxos[i].outpoint);
         };
 
-        let signed_tx = await Common.sign_transaction(PRIVATE_KEY_WIF, tx, source);
+        let sign_transaction_result = await Common.sign_transaction(PRIVATE_KEY_WIF, tx, source);
+        let signed_tx = switch (sign_transaction_result) {
+            case (#Ok(signed_tx)) {
+                signed_tx
+            };
+            case (#Err(error)) {
+                return #err(error);
+            };
+        };
+
         let send_transaction_response = await btc.send_transaction({ transaction=signed_tx });
         switch (send_transaction_response) {
             case (#Ok) {
