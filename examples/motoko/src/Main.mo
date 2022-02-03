@@ -27,7 +27,7 @@ actor class Self(payload : Types.InitPayload) {
     let PRIVATE_KEY_WIF : Text = "L2C1QgyKqNgfV7BpEPAm6PVn2xW8zpXq6MojSbWdH18nGQF2wGsT";
     // Used to interact with the BTC canister.
     let btc : BTC = actor(Principal.toText(payload.bitcoin_canister_id));
-    // Stores outpoints
+    // Stores outpoints the have been spent.
     let spent_outpoints : Utils.OutPointSet = Utils.OutPointSet();
 
     // Retrieves the BTC address using the common canister.
