@@ -1,10 +1,14 @@
+import Array "mo:base/Array";
 import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 import Principal "mo:base/Principal";
+import Nat64 "mo:base/Nat64";
 import Result "mo:base/Result";
+import TrieSet "mo:base/TrieSet";
 
 import Common "canister:btc-example-common";
 import Types "Types";
+import Utils "Utils";
 
 
 actor class Self(payload : Types.InitPayload) {
@@ -22,7 +26,9 @@ actor class Self(payload : Types.InitPayload) {
     // The canister's private key in "Wallet Import Format".  
     let PRIVATE_KEY_WIF : Text = "L2C1QgyKqNgfV7BpEPAm6PVn2xW8zpXq6MojSbWdH18nGQF2wGsT";
     // Used to interact with the BTC canister.
-    let btc: BTC = actor(Principal.toText(payload.bitcoin_canister_id));
+    let btc : BTC = actor(Principal.toText(payload.bitcoin_canister_id));
+    // Stores outpoints the have been spent.
+    let spent_outpoints : Utils.OutPointSet = Utils.OutPointSet();
 
     // Retrieves the BTC address using the common canister.
     public func btc_address() : async Text {
@@ -50,10 +56,10 @@ actor class Self(payload : Types.InitPayload) {
         });
         switch (result) {
             case (#Ok(response)) {
-                return #ok(response)
+                #ok(response)
             };
             case (#Err(err)) {
-                return #err(err)
+                #err(err)
             };
         }
     };
@@ -62,6 +68,10 @@ actor class Self(payload : Types.InitPayload) {
     public func get_utxos() : async Result.Result<Types.GetUtxosData, ?Types.GetUtxosError> {
         let address : Text = await btc_address();
         await get_utxos_internal(address)
+    };
+
+    func is_spent_outpoint(utxo : Types.Utxo) : Bool {
+        not spent_outpoints.contains(utxo.outpoint) 
     };
 
     // Allows Bitcoin to be sent from the canister to a BTC address.
@@ -82,8 +92,20 @@ actor class Self(payload : Types.InitPayload) {
             };
         };
 
-        let signed_transaction = await Common.build_and_sign_transaction(PRIVATE_KEY_WIF, utxos_data.utxos, source, destination, amount, fees);
-        let send_transaction_response = await btc.send_transaction({ transaction=signed_transaction });
+        let filtered_utxos = Array.filter(utxos_data.utxos, is_spent_outpoint);
+        if (filtered_utxos.size() == 0) {
+            return #err(#InsufficientBalance);
+        };
+
+        let (tx, used_utxo_indices) = await Common.build_transaction(filtered_utxos, source, destination, amount, fees);
+
+        for (index in used_utxo_indices.vals()) {
+            let i : Nat = Nat64.toNat(index);
+            spent_outpoints.add(filtered_utxos[i].outpoint);
+        };
+
+        let signed_tx = await Common.sign_transaction(PRIVATE_KEY_WIF, tx, source);
+        let send_transaction_response = await btc.send_transaction({ transaction=signed_tx });
         switch (send_transaction_response) {
             case (#Ok) {
                 #ok(())

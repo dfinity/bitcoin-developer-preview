@@ -10,6 +10,7 @@ module Types {
     public type SendError = {
         #MalformedAddress;
         #MalformedTransaction;
+        #InsufficientBalance;
         #Unknown;
     };
 
