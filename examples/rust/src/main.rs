@@ -26,7 +26,7 @@ thread_local! {
         RefCell::new(PrivateKey::from_wif(BTC_PRIVATE_KEY_WIF).unwrap());
 
     // The ID of the bitcoin canister that is installed locally.
-    // The value here is initialize with a dummy value, which will be overwritten in `init`.
+    // The value here is initialized with a dummy value, which will be overwritten in `init`.
     static BTC_CANISTER_ID: RefCell<Principal> = RefCell::new(Principal::management_canister());
 
     // A cache of spent outpoints. Needed to avoid double spending.
