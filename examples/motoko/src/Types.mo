@@ -8,9 +8,11 @@ module Types {
     };
 
     public type SendError = {
-        #MalformedAddress;
+        #MalformedSourceAddress;
+        #MalformedDestinationAddress;
         #MalformedTransaction;
         #InsufficientBalance;
+        #InvalidPrivateKeyWif;
         #Unknown;
     };
 

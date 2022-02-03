@@ -1,3 +1,5 @@
+pub mod types;
+
 use bitcoin::{
     blockdata::script::Builder,
     hashes::Hash,
@@ -123,4 +125,3 @@ pub fn sign_transaction(
 
     transaction
 }
-

@@ -12,6 +12,7 @@ use bitcoin::{
     consensus::deserialize, util::psbt::serialize::Serialize, Address, Network, PrivateKey,
     Transaction,
 };
+use example_common::types::{BuildTransactionError, SignTransactionError};
 use ic_btc_types::{OutPoint, Utxo};
 use ic_cdk::export::candid::{candid_method, CandidType, Deserialize};
 use ic_cdk_macros::query;
@@ -39,25 +40,22 @@ fn get_p2pkh_address(private_key_wif: String, network: NetworkCandid) -> String 
     example_common::get_p2pkh_address(&private_key, network).to_string()
 }
 
-// Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
-#[query]
-#[candid_method(query)]
-fn build_transaction(
+fn build_transaction_(
     utxos: Vec<Utxo>,
     source_address: String,
     destination_address: String,
     amount: u64,
     fees: u64,
-) -> (Vec<u8>, Vec<usize>) {
-    let source_address = Address::from_str(&source_address).expect("Invalid source address");
-    let destination_address =
-        Address::from_str(&destination_address).expect("Invalid destination address");
+) -> Result<(Vec<u8>, Vec<usize>), BuildTransactionError> {
+    let source_address = Address::from_str(&source_address)
+        .map_err(|_| BuildTransactionError::MalformedSourceAddress)?;
+    let destination_address = Address::from_str(&destination_address)
+        .map_err(|_| BuildTransactionError::MalformedDestinationAddress)?;
     let outpoint_to_index: HashMap<OutPoint, usize> = utxos
         .iter()
         .enumerate()
         .map(|(idx, utxo)| (utxo.outpoint.clone(), idx))
         .collect();
-
     let tx = example_common::build_transaction(
         utxos,
         source_address.clone(),
@@ -65,8 +63,7 @@ fn build_transaction(
         amount,
         fees,
     )
-    .expect("Building transaction failed");
-
+    .map_err(|_| BuildTransactionError::InsufficientBalance)?;
     let used_utxo_indices: Vec<usize> = tx
         .input
         .iter()
@@ -79,7 +76,34 @@ fn build_transaction(
         })
         .collect();
 
-    (tx.serialize(), used_utxo_indices)
+    Ok((tx.serialize(), used_utxo_indices))
+}
+
+// Returns the transaction as serialized bytes and the UTXO indices used for the transaction.
+#[query]
+#[candid_method(query)]
+fn build_transaction(
+    utxos: Vec<Utxo>,
+    source_address: String,
+    destination_address: String,
+    amount: u64,
+    fees: u64,
+) -> Result<(Vec<u8>, Vec<usize>), BuildTransactionError> {
+    build_transaction_(utxos, source_address, destination_address, amount, fees)
+}
+
+fn sign_transaction_(
+    private_key_wif: String,
+    serialized_transaction: Vec<u8>,
+    source_address: String,
+) -> Result<Vec<u8>, SignTransactionError> {
+    let private_key = PrivateKey::from_wif(&private_key_wif)
+        .map_err(|_| SignTransactionError::InvalidPrivateKeyWif)?;
+    let source_address = Address::from_str(&source_address)
+        .map_err(|_| SignTransactionError::MalformedSourceAddress)?;
+    let tx: Transaction = deserialize(serialized_transaction.as_slice())
+        .map_err(|_| SignTransactionError::MalformedTransaction)?;
+    Ok(example_common::sign_transaction(tx, private_key, source_address).serialize())
 }
 
 #[query]
@@ -88,12 +112,8 @@ fn sign_transaction(
     private_key_wif: String,
     serialized_transaction: Vec<u8>,
     source_address: String,
-) -> Vec<u8> {
-    let private_key = PrivateKey::from_wif(&private_key_wif).expect("Invalid private key WIF");
-    let tx: Transaction =
-        deserialize(serialized_transaction.as_slice()).expect("Invalid transaction");
-    let source_address = Address::from_str(&source_address).expect("Invalid source address");
-    example_common::sign_transaction(tx, private_key, source_address).serialize()
+) -> Result<Vec<u8>, SignTransactionError> {
+    sign_transaction_(private_key_wif, serialized_transaction, source_address)
 }
 
 fn main() {}
