@@ -16,10 +16,17 @@ type Utxo = record {
   confirmations: nat32;
 };
 
-service: (InitPayload) -> {
-  btc_address: () -> (text) query;
-  balance: () -> (nat64);
-  get_utxos: () -> (vec Utxo);
-  send: (amount: nat64, destination: text) -> ();
-}
+type Test = record {
+  btc_address : text;
+  before_send_utxos : vec Utxo;
+  before_send_balance : Satoshi;
+  after_send_utxos : vec Utxo;
+  after_send_balance : Satoshi;
+};
 
+service: (InitPayload) -> {
+  // test: () -> Test;
+  // otherwise Test is an unexpected token
+  // test: () -> (Test);
+  // otherwise got "Error deserializing blob" "Invalid data: Invalid IDL blob."
+}
