@@ -1,4 +1,4 @@
-use ic_btc_library::{btc_address_str, get_utxos, balance, send};
+use ic_btc_library::{btc_address_str, get_utxos, get_balance, send};
 use ic_cdk_macros::update;
 use ic_btc_types::Utxo;
 
@@ -10,21 +10,18 @@ pub async fn test() -> (String, Vec<Utxo>, u64, Vec<Utxo>, u64) {
     let before_send_utxos = get_utxos(MIN_CONFIRMATIONS).await;
 
     // Returns the canister's balance.
-    let before_send_balance = balance(MIN_CONFIRMATIONS).await;
+    let before_send_balance = get_balance(MIN_CONFIRMATIONS).await;
 
     // Send the `amount` of satoshis provided to the `destination` address.
-    //
-    // Notes:
-    //  * Input UTXOs are not being selected in any smart way.
-    //  * A dust threshold of 10k satoshis is used.
+    // Additional `fees` are sent, 10k in this example
     send(1_0000_0000, 1_0000, "bcrt1qyepqdteh7w9fhtsrylzghduhj4th5260ae3ywf".to_string()).await;
 
-    // Returns the regtest P2PKH address derived from the private key as a string.
-    // P2PKH was chosen for demonstrational purposes. Other address types can also be used.
+    // Returns the base-58 Bitcoin address of the canister
     (btc_address_str(),
 
      before_send_utxos, before_send_balance,
-     get_utxos(MIN_CONFIRMATIONS).await, balance(MIN_CONFIRMATIONS).await)
+     // UTXOs and balance unchanged after the send call because the transaction hasn't had the time to get in a block
+     get_utxos(MIN_CONFIRMATIONS).await, get_balance(MIN_CONFIRMATIONS).await)
 }
 
 fn main() {}

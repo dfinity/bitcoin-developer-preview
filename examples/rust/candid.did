@@ -16,7 +16,7 @@ type Utxo = record {
   confirmations: nat32;
 };
 
-type Test = record {
+type BTCCanisterInfo = record {
   btc_address : text;
   before_send_utxos : vec Utxo;
   before_send_balance : Satoshi;
@@ -25,8 +25,8 @@ type Test = record {
 };
 
 service: (InitPayload) -> {
-  // test: () -> Test;
-  // otherwise Test is an unexpected token
-  // test: () -> (Test);
+  // test: () -> BTCCanisterInfo;
+  // otherwise BTCCanisterInfo is an unexpected token
+  // test: () -> (BTCCanisterInfo);
   // otherwise got "Error deserializing blob" "Invalid data: Invalid IDL blob."
 }
