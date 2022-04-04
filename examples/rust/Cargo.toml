@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 ic-btc-types = { path = "../../types" }
-ic-btc-library = { path = "../../../bitcoin-library/rust" }
+ic-btc-library = { path = "../../../library/rust" }
 ic-cdk = "0.3.1"
 ic-cdk-macros = "0.3.1"
 

@@ -18,10 +18,10 @@ type Utxo = record {
 
 type BTCCanisterInfo = record {
   btc_address : text;
-  before_send_utxos : vec Utxo;
-  before_send_balance : Satoshi;
-  after_send_utxos : vec Utxo;
-  after_send_balance : Satoshi;
+  utxos : vec Utxo;
+  balance : Satoshi;
+  txid : text;
+  update_txid : text;
 };
 
 service: (InitPayload) -> {

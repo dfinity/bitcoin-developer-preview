@@ -12,7 +12,7 @@ pub struct OutPoint {
 }
 
 /// An unspent transaction output.
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
+#[derive(CandidType, Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
 pub struct Utxo {
     pub outpoint: OutPoint,
     pub value: Satoshi,
@@ -67,4 +67,27 @@ pub struct SendTransactionRequest {
 #[derive(CandidType, Debug, Deserialize, PartialEq)]
 pub enum SendTransactionError {
     MalformedTransaction,
+}
+
+#[derive(CandidType, Debug, Deserialize, PartialEq)]
+pub enum UpdateTransactionError {
+    UnmodifiableTransaction,
+    UnknownTxId,
+    OneTransactionUpdateAlreadyConfirmed,
+    InsufficentFees,
+}
+
+// Structure necessary to keep track of previous sent transactions fees
+#[derive(CandidType, Deserialize)]
+pub struct TransactionWithFees {
+    pub previous_outputs: Vec<OutPoint>,
+    pub fees: u64,
+}
+
+pub type Address = Vec<u8>;
+
+#[derive(CandidType, Debug, Deserialize, PartialEq)]
+pub struct UtxosDelta {
+    pub added_utxos: Vec<Utxo>,
+    pub removed_utxos: Vec<Utxo>,
 }

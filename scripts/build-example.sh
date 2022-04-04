@@ -10,9 +10,9 @@ pushd $SCRIPT_DIR/..
 # Otherwise the wasm compilation of rust-secp256k1 will fail.
 if [ "$(uname)" == "Darwin" ]; then
   # On macs we need to use the brew versions
-  AR="/usr/local/opt/llvm/bin/llvm-ar" CC="/usr/local/opt/llvm/bin/clang" cargo build --bin example --target $TARGET --release
+  AR="/usr/local/opt/llvm/bin/llvm-ar" CC="/usr/local/opt/llvm/bin/clang" cargo +nightly build --bin example --target $TARGET --release
 else
-  cargo build --bin example --target $TARGET --release
+  cargo +nightly build --bin example --target $TARGET --release
 fi
 
 cargo install ic-cdk-optimizer --version 0.3.1 --root ./target
