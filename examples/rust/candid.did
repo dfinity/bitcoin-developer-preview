@@ -19,7 +19,7 @@ type Utxo = record {
 type UpdateTransactionError = variant {
   UnmodifiableTransaction;
   UnknownTransactionId;
-  OneTransactionUpdateAlreadyConfirmed;
+  UtxoAlreadySpent;
   InsufficentFee;
 };
 
