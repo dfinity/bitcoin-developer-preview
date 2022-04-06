@@ -16,13 +16,20 @@ type Utxo = record {
   confirmations: nat32;
 };
 
-type BTCCanisterInfo = record {
-  btc_address : text;
-  utxos : vec Utxo;
-  balance : Satoshi;
-  txid : text;
-  update_txid : text;
+type UpdateTransactionError = variant {
+  UnmodifiableTransaction;
+  UnknownTransactionId;
+  OneTransactionUpdateAlreadyConfirmed;
+  InsufficentFees;
 };
 
 service: (InitPayload) -> {
+  btc_address: () -> (text) query;
+  get_balance: () -> (nat64);
+  get_utxos: () -> (vec Utxo);
+  send: (amount: nat64, fees: nat64, destination: text, is_modifiable: bool) -> (text);
+  update_transaction: (txid: text, new_amount: nat64, new_fees: nat64, new_destination: text) -> (variant {
+    Ok : text;
+    Err : UpdateTransactionError;
+  });
 }

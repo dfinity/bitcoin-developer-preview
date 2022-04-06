@@ -3,6 +3,5 @@
 members = [
     "canister",
     "examples/common",
-    "examples/rust",
-    "types",
+    "examples/rust"
 ]

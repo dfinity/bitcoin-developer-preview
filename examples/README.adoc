@@ -64,7 +64,7 @@ dfx canister --no-wallet call btc-example-motoko btc_address
 
 ```bash
 # Using the Rust example.
-dfx canister --no-wallet call btc-example-rust balance
+dfx canister --no-wallet call btc-example-rust get_balance
 
 # Using the Motoko example.
 dfx canister --no-wallet call btc-example-motoko balance
@@ -80,11 +80,13 @@ dfx canister --no-wallet call btc-example-rust get_utxos
 dfx canister --no-wallet call btc-example-motoko get_utxos
 ```
 
-* Send Bitcoin (in Satoshi) from the canister to a destination address.
+* Send Bitcoin with fees (in Satoshi) from the canister to a destination address.
+
+Change the last argument from `true` to `false` if you don't want to make your transaction replaceable (see below).
 
 ```bash
 # Using the Rust example.
-dfx canister --no-wallet call btc-example-rust send "(1_0000_0000, \"DESTINATION_ADDRESS\")"
+dfx canister --no-wallet call btc-example-rust send "(1_0000_0000, 10_000, \"DESTINATION_ADDRESS\", true)"
 
 # Using the Motoko example.
 dfx canister --no-wallet call btc-example-motoko send "(1_0000_0000, \"DESTINATION_ADDRESS\")"
@@ -92,6 +94,20 @@ dfx canister --no-wallet call btc-example-motoko send "(1_0000_0000, \"DESTINATI
 
 For the transaction to be processed, you'll need to mine a new block using the command below.
 The new block will contain the newly sent transaction.
+
+```bash
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 $BTC_ADDRESS
+```
+
+* Update a sent Bitcoin transaction from the canister.
+
+```bash
+# Using the Rust example.
+dfx canister --no-wallet call btc-example-rust update_transaction "(\"TXID\", 1_0000_0000, 100_000, \"DESTINATION_ADDRESS\")"
+```
+
+For the updated transaction to be processed, you'll need to mine a new block using the command below.
+The new block will contain the updated transaction.
 
 ```bash
 ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 $BTC_ADDRESS

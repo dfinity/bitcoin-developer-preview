@@ -1,39 +1,46 @@
-use ic_btc_library::{btc_address_str, get_balance, get_utxos, send, update_transaction};
-use ic_btc_types::Utxo;
-use ic_cdk::trap;
-use ic_cdk_macros::update;
+use ic_btc_library::{
+    btc_address_str as ic_btc_library_btc_address_str, get_balance as ic_btc_library_get_balance,
+    get_utxos as ic_btc_library_get_utxos, send as ic_btc_library_send,
+    update_transaction as ic_btc_library_update_transaction,
+};
+use ic_btc_types::{UpdateTransactionError, Utxo};
+use ic_cdk_macros::{query, update};
 
-const MIN_CONFIRMATIONS: Option<u32> = Some(0);
+/// Return the base-58 Bitcoin address of the canister
+#[query]
+pub fn btc_address() -> String {
+    ic_btc_library_btc_address_str().to_string()
+}
 
+/// Both getters below always return the same value until a block, with transaction concerning the canister, is mined
+/// Returns the UTXOs of the canister's BTC address.
 #[update]
-pub async fn test() -> (String, Vec<Utxo>, u64, String, String) {
-    let recipient = String::from("bcrt1qyepqdteh7w9fhtsrylzghduhj4th5260ae3ywf");
+pub async fn get_utxos() -> Vec<Utxo> {
+    ic_btc_library_get_utxos(Some(0)).await
+}
 
-    // Send the `amount` with `fees` of satoshis provided to the `destination` address.
-    // If `is_modifiable` is set to true, the transaction is repleacable until it got mined in a block
-    let txid = send(1_000_000, 100_000, recipient.clone(), true).await;
+/// Returns the canister's balance.
+#[update]
+pub async fn get_balance() -> u64 {
+    ic_btc_library_get_balance(Some(0)).await
+}
 
-    // Update a transaction identified by its `txid` with a `new_amount`, `new_fees` and a `new_destination` addresss
-    let result =
-        update_transaction(txid.clone(), 10_000_000, 1_000_000, recipient.clone()).await;
-    let update_txid;
-    match result {
-        Ok(txid) => update_txid = txid,
-        Err(err) => trap(&format!("Error: Update transaction failed: {:?}", err)),
-    }
+/// Send the `amount` with `fees` of satoshis provided to the `destination` address.
+/// If `is_modifiable` is set to true, the transaction is replaceable until it gets mined in a block
+#[update]
+pub async fn send(amount: u64, fees: u64, destination: String, is_modifiable: bool) -> String {
+    ic_btc_library_send(amount, fees, destination, is_modifiable).await
+}
 
-    (
-        // Return the base-58 Bitcoin address of the canister
-        btc_address_str(),
-        // Both getters below always return the same value until a block, with transaction concerning the canister, is mined
-        // Return the UTXOs of the canister's BTC address
-        get_utxos(MIN_CONFIRMATIONS).await,
-        // Return the canister's balance
-        get_balance(MIN_CONFIRMATIONS).await,
-        // Return the original and updated transactions ids
-        txid,
-        update_txid,
-    )
+/// Update a transaction identified by its `txid` with a `new_amount`, `new_fees` and a `new_destination` address
+#[update]
+pub async fn update_transaction(
+    txid: String,
+    new_amount: u64,
+    new_fees: u64,
+    new_destination: String,
+) -> Result<String, UpdateTransactionError> {
+    ic_btc_library_update_transaction(txid, new_amount, new_fees, new_destination).await
 }
 
 fn main() {}
