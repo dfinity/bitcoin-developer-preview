@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ic-btc-types = { path = "../../../library/types" }
-ic-btc-library = { path = "../../../library/rust" }
+ic-btc-types = { git = "https://github.com/dfinity/bitcoin-library" }
+ic-btc-library = { git = "https://github.com/dfinity/bitcoin-library" }
 ic-cdk = "0.3.1"
 ic-cdk-macros = "0.3.1"
 
