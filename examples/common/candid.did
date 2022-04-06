@@ -8,7 +8,7 @@ type Network = variant {
 };
 
 type OutPoint = record {
-  txid : blob;
+  tx_id : blob;
   vout : nat32
 };
 

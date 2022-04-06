@@ -5,7 +5,7 @@ type InitPayload = record {
 };
 
 type OutPoint = record {
-  txid : blob;
+  tx_id : blob;
   vout : nat32
 };
 
@@ -20,14 +20,14 @@ type UpdateTransactionError = variant {
   UnmodifiableTransaction;
   UnknownTransactionId;
   OneTransactionUpdateAlreadyConfirmed;
-  InsufficentFees;
+  InsufficentFee;
 };
 
 service: (InitPayload) -> {
   btc_address: () -> (text) query;
   get_balance: () -> (nat64);
   get_utxos: () -> (vec Utxo);
-  send: (amount: nat64, fees: nat64, destination: text, is_modifiable: bool) -> (text);
+  send_transaction: (amount: nat64, fees: nat64, destination: text, is_modifiable: bool) -> (text);
   update_transaction: (txid: text, new_amount: nat64, new_fees: nat64, new_destination: text) -> (variant {
     Ok : text;
     Err : UpdateTransactionError;

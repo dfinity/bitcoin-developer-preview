@@ -57,7 +57,7 @@ fn get_utxos(request: GetUtxosRequest) -> Result<GetUtxosResponse, GetUtxosError
             .into_iter()
             .map(|(outpoint, txout, height)| Utxo {
                 outpoint: OutPoint {
-                    txid: outpoint.txid.to_vec(),
+                    tx_id: outpoint.txid.to_vec(),
                     vout: outpoint.vout,
                 },
                 value: txout.value,
@@ -223,7 +223,7 @@ mod test {
                 Ok(GetUtxosResponse {
                     utxos: vec![Utxo {
                         outpoint: OutPoint {
-                            txid: coinbase_tx.txid().to_vec(),
+                            tx_id: coinbase_tx.txid().to_vec(),
                             vout: 0
                         },
                         value: 1000,
@@ -414,7 +414,7 @@ mod test {
                     Ok(GetUtxosResponse {
                         utxos: vec![Utxo {
                             outpoint: OutPoint {
-                                txid: tx.txid().to_vec(),
+                                tx_id: tx.txid().to_vec(),
                                 vout: 0,
                             },
                             value: 1000,
@@ -457,7 +457,7 @@ mod test {
                 Ok(GetUtxosResponse {
                     utxos: vec![Utxo {
                         outpoint: OutPoint {
-                            txid: coinbase_tx.txid().to_vec(),
+                            tx_id: coinbase_tx.txid().to_vec(),
                             vout: 0,
                         },
                         value: 1000,

@@ -52,7 +52,7 @@ pub fn build_transaction(
         .into_iter()
         .map(|utxo| TxIn {
             previous_output: OutPoint {
-                txid: Txid::from_hash(Hash::from_slice(&utxo.outpoint.txid).unwrap()),
+                txid: Txid::from_hash(Hash::from_slice(&utxo.outpoint.tx_id).unwrap()),
                 vout: utxo.outpoint.vout,
             },
             sequence: 0xffffffff,

@@ -1,7 +1,7 @@
 type Satoshi = nat64;
 
 type OutPoint = record {
-  txid : blob;
+  tx_id : blob;
   vout : nat32
 };
 

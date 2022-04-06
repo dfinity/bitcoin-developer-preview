@@ -72,7 +72,7 @@ fn build_transaction(
         .iter()
         .filter_map(|tx_in| {
             let outpoint = OutPoint {
-                txid: tx_in.previous_output.txid.to_vec(),
+                tx_id: tx_in.previous_output.txid.to_vec(),
                 vout: tx_in.previous_output.vout,
             };
             outpoint_to_index.get(&outpoint).cloned()
