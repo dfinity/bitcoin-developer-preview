@@ -25,21 +25,14 @@ In the developer preview, all components run *locally*, i.e., no Bitcoin functio
 is deployed on mainnet.
 The Bitcoin canister is configured to interact with a local Bitcoin network in `regtest` mode.
 
-By contrast, there will be two Bitcoin _virtual canisters_ on mainnet, similar to the
-https://smartcontracts.org/docs/interface-spec/index.html#ic-management-canister[management canister].
-Application canisters can interact with these virtual canisters
-using a canister address; however, all Bitcoin functionality is effectively part of the replica and does not
-run inside canisters.
+By contrast, the Bitcoin functionality will be exposed through the
+https://smartcontracts.org/docs/interface-spec/index.html#ic-management-canister[management canister]
+on mainnet.
 
-NOTE: We refer to these virtual canisters simply as "Bitcoin canisters" for brevity.
-
-The two Bitcoin (virtual) canisters differ only in that they connect to different Bitcoin networks:
-
-- The Bitcoin canister that interacts with the Bitcoin *mainnet* has the canister address `TBD`.
-- The Bitcoin canister that interacts with the Bitcoin *testnet* has the canister address  `TBD`.
-
-The exposed <<canister/README.adoc#API,API>> is intended to be the API of the mainnet release, but
-may potentially be modified based on community feedback.
+The Bitcoin API on mainnet will be quite similar to the <<canister/README.adoc#API,API>>
+in the developer preview.
+However, the function signatures will be slightly different. Moreover, the Bitcoin
+functionality will be extended, for example, by offering an API for fee management.
 
 == Components
 
@@ -269,7 +262,7 @@ You should an output that looks similar to the following:
 adapter_1   | Feb 02 01:01:56.512 INFO Connected to 172.29.0.2:18444
 adapter_1   | Feb 02 01:01:57.022 INFO Received version from 172.29.0.2:18444
 adapter_1   | Feb 02 01:01:57.022 INFO Completed the version handshake with 172.29.0.2:18444
-adapter_1   | Feb 02 01:01:57.022 INFO Adding peer_info with addr : 172.29.0.2:18444 
+adapter_1   | Feb 02 01:01:57.022 INFO Adding peer_info with addr : 172.29.0.2:18444
 adapter_1   | Feb 02 01:01:57.223 INFO Received verack from 172.29.0.2:18444
 ```
 
